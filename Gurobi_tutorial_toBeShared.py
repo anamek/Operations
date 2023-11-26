@@ -114,7 +114,7 @@ Delta_minus_jk = {(j,k):[i for i in N.keys()
                         and dist_matrix[j][i]<=K[k]['R']] 
                  for j in N.keys() for k in K.keys()}
 
-##################     
+##################
 ### Plot nodes ###
 ##################
 plt.close('all')
