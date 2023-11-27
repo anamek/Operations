@@ -11,9 +11,6 @@ import matplotlib.pyplot as plt
 # Cars need to have t0, d0 and v0 for each one
 
 
-
-
-
 #####################################
 ### Defining all initial settings ###
 #####################################
@@ -43,34 +40,55 @@ v_avg = 15.63889
 M_big = 2000  # for constraint 3
 
 
-# Car properties
-t0 = np.zeros(no_vehicles)
-v0 = np.ones(no_vehicles)*20
-d0 = np.ones(no_vehicles)*100
-t_desired = np.zeros(no_vehicles) # all initial times initialized to 0 for now
-
+#######################################
+### Defining properties of vehicles ###
+#######################################
 random.seed(42)
 
-#################################
-### Defining MILP Model class ###
-#################################
+t0 = np.zeros(no_vehicles)  # t0 = d0/v0
+v0 = np.ones(no_vehicles)*20
+d0 = np.ones(no_vehicles)*100
+
+K = {k: {'Direction': random.randint(0, 1)}
+     for k in list(np.arange(0, no_vehicles))}  # 0 = vertical 1 = horizontal
+
+##############################
+### Defining Model classes ###
+##############################
+
+class Vehicle:
+    def __init__(self, idx, k=0, d0=0, v0=0, t0=0, t_access=None):
+        self.idx = idx
+        self.k = k
+        self.d0 = d0
+        self.v0 = v0
+        self.t0 = t0
+        self.t_access = t_access
 
 class MILP_Model:
     def __init__(self, name="milp", no_vehicles=10):
-        self.model = Model(name)
+        self.MILP = Model(name)
         self.no_vehicles = no_vehicles
+        self.vehicles = [[Vehicle(h, K[h]["Direction"], d0[h], v0[h], t0[h])] for h in range(no_vehicles)]
+
+    def initialize_variables(self):
+        pass
+
+    def initialize_constraints(self):
+        pass
+
+    def initialize_objective_function(self):
+        pass
+
+    def print(self):
+        return print(self.MILP)
+
+
 
 
 
 MILP = Model("milp")
-
-
-#######################################
-### Defining properties of vehicles ###
-#######################################
-
-K = {k: {'Direction': random.randint(0, 1)}
-     for k in list(np.arange(0, no_vehicles))}  # 0 = vertical 1 = horizontal
+MILP.update()
 
 #######################################
 ##### Defining decision variables #####
@@ -131,9 +149,9 @@ for j in range(no_vehicles):
 MILP.update()
 
 
-##########################
-### Defining objective ###
-##########################
+###################################
+### Defining objective function ###
+###################################
 
 # Variables and Constraints for objective functions
 t_slack = {}
@@ -160,9 +178,9 @@ for i in range(no_vehicles):
 # Adding J2 Constraints (+2*no_vehicles constraints)
 for i in range(no_vehicles):
     j = 0
-    obj_constraints[("constraintsJ2", i)] = MILP.addConstr(t_slack[("slackJ2", i)] >= (t[i] - t_desired[i]),
+    obj_constraints[("constraintsJ2", i)] = MILP.addConstr(t_slack[("slackJ2", i)] >= (t[i] - t0[i]),
                                                            name="cons_t_access_pos_difference[%d]"%i)
-    obj_constraints[("constraintsJ2", i+j)] = MILP.addConstr(t_slack[("slackJ2", i)] >= -(t[i] - t_desired[i]),
+    obj_constraints[("constraintsJ2", i+j)] = MILP.addConstr(t_slack[("slackJ2", i)] >= -(t[i] - t0[i]),
                                                              name="cons_t_access_neg_difference[%d]"%i)
     j += 1
 
@@ -187,3 +205,6 @@ MILP.setObjective(obj, GRB.MINIMIZE)
 MILP.update()
 #MILP.write('MILP.lp')
 print(MILP)
+
+
+
