@@ -65,6 +65,7 @@ class Vehicle:
         self.t0 = t0
         self.t_access = t_access
 
+
 class MILP_Model:
     def __init__(self, name="milp", no_vehicles=10):
         self.MILP = Model(name)
@@ -165,7 +166,7 @@ t_slack["slackJ1"] = MILP.addVar(lb=0.0,
 # Adding J1 constraints (+no_vehicles constraints)
 for i in range(no_vehicles):
     obj_constraints[("constraintsJ1", i)] = MILP.addConstr(t_slack["slackJ1"] >= t[i],
-                                                           name="cons_t_access[%d]"%i)
+                                                           name="cons_t_access[%d]" % i)
 
 MILP.update()
 
