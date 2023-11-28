@@ -7,9 +7,6 @@ from gurobipy import Model, GRB, LinExpr, quicksum
 from operator import itemgetter
 import matplotlib.pyplot as plt
 
-# Comments for improvement
-# Cars need to have t0, d0 and v0 for each one
-
 
 #####################################
 ### Defining all initial settings ###
@@ -49,7 +46,7 @@ t0 = np.zeros(no_vehicles)  # t0 = d0/v0
 v0 = np.ones(no_vehicles)*20
 d0 = np.ones(no_vehicles)*100
 
-K = {k: {'Direction': random.randint(0, 1)}
+K = {k: {'Direction': random.choice(['North', 'South', 'East', 'West'])}
      for k in list(np.arange(0, no_vehicles))}  # 0 = vertical 1 = horizontal
 
 ##############################
@@ -98,15 +95,15 @@ t = {}  # access times
 B2 = {}  # Binary vars for constraint 2
 B3 = {}  # Binary vars for constraint 3
 
-# Access times one per vehicle
+# Access times one per vehicle (+no_vehicles)
 for i in range(no_vehicles):
     t[i] = MILP.addVar(lb=0.0, vtype=GRB.CONTINUOUS, name="t")
 
-# Binary variable one per pair of vehicles (constr. 3)
+# Binary variable one per pair of vehicles (constr. 2 & 3) (+ no_vehicles*(no_vehicles+1))
 for i in range(no_vehicles):
     for j in range(i+1, no_vehicles):
-        B2[i, j] = MILP.addVar(vtype=GRB.BINARY, name="B2")
-        B3[i, j] = MILP.addVar(vtype=GRB.BINARY, name="B3")
+        B2[i, j] = MILP.addVar(vtype=GRB.BINARY, name="B2[%d][%d]" % (i, j))
+        B3[i, j] = MILP.addVar(vtype=GRB.BINARY, name="B3[%d][%d]" % (i, j))
 
 MILP.update()
 
