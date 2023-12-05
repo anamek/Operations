@@ -1,36 +1,57 @@
-# import matplotlib.pyplot as plt
-# from MILP_OOP import Vehicle
-#
-# def plot_vehicle_position(vehicle_list):
-#     """
-#     Plot the position of a Vehicle based on its d0 attribute.
-#
-#     Parameters:
-#     - vehicle (Vehicle): An instance of the Vehicle class.
-#     """
-#
-#     # Assuming the road is a straight line
-#     road_length = 1000  # You can adjust this based on your scenario
-#
-#     # Create a figure and axis
-#     fig, ax = plt.subplots()
-#
-#     # Plot the vehicle position
-#     for vehicle in vehicle_list:
-#         ax.plot([vehicle.d0, vehicle.d0], [0, 1], marker='o', label=f'Vehicle {vehicle.idx}')
-#
-#     # Set axis labels and limits
-#     ax.set_xlabel('Distance (meters)')
-#     ax.set_ylabel('Position along road')
-#     ax.set_xlim(0, road_length)
-#     ax.set_ylim(0, 1)
-#
-#     # Add legend
-#     ax.legend()
-#
-#     # Show the plot
-#     plt.show()
-#
-# # Example usage:
-# vehicle_example = Vehicle(idx=1, d0=200)
-# plot_vehicle_position(vehicle_example)
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+
+def plot_vehicle_position(vehicle_list):
+    fig, ax = plt.subplots()
+    max_limit = 0
+    margin = 10
+    # Plot the vehicle position as rectangles
+    for vehicle in vehicle_list:
+        if vehicle.d0 > max_limit:
+            max_limit = vehicle.d0
+        x = 0
+        y = 0
+        width = 2.5
+        height = 5
+
+        rectangle = None
+        if vehicle.k == "North":
+            y = -vehicle.d0
+            rectangle = Rectangle((x - width / 2, y - height / 2), width, height, edgecolor='black', facecolor='blue')
+        elif vehicle.k == "South":
+            y = vehicle.d0
+            rectangle = Rectangle((x - width / 2, y - height / 2), width, height, edgecolor='black', facecolor='blue')
+        elif vehicle.k == "East":
+            x = -vehicle.d0
+            rectangle = Rectangle((x - height / 2, y - width / 2), height, width, edgecolor='black', facecolor='red')
+        elif vehicle.k == "West":
+            x = vehicle.d0
+            rectangle = Rectangle((x - height / 2, y - width / 2), height, width, edgecolor='black', facecolor='red')
+
+        ax.add_patch(rectangle)
+
+        # Uncomment this if you want to see the vehicles labelled
+        #ax.text(x, y, f'Vehicle {vehicle.idx}', ha='left', va='top', color='black')
+
+    # Set axis labels, limits, and title
+    ax.set_xlabel('X Distance (meters)')
+    ax.set_ylabel('Y Distance (meters)')
+
+    ax.set_xlim(- max_limit - margin, max_limit + margin)
+    ax.set_ylim(- max_limit - margin, max_limit + margin)
+    ax.set_box_aspect(1)
+    ax.axhline(y=0, color='k', linewidth=1)
+    ax.axvline(x=0, color='k', linewidth=1)
+    ax.set_title('Vehicle Positions')
+
+    # Adding Legend
+    north_south_patch = Rectangle((0, 0), 1, 1, edgecolor='black', facecolor='blue', label='North/South Bound')
+    east_west_patch = Rectangle((0, 0), 1, 1, edgecolor='black', facecolor='red', label='East/West Bound')
+    ax.legend(handles=[north_south_patch, east_west_patch], fontsize="small")
+
+    # Show the plot
+    plt.show()
+
+if __name__ == '__main__':
+    pass
+

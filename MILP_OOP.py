@@ -6,6 +6,7 @@ from itertools import product
 from gurobipy import Model, GRB, LinExpr, quicksum
 from operator import itemgetter
 import matplotlib.pyplot as plt
+import plotting
 
 # usage of no_vehicles vs self.no_vehicles
 
@@ -212,14 +213,16 @@ class MILP_Model:
 
 # Generating 10 default vehicles
 
-list_vehicles = []
-for i in range(10):
-    list_vehicles.append(Vehicle(i))
+if __name__ == '__main__':
+    list_vehicles = []
+    for i in range(10):
+        list_vehicles.append(Vehicle(i))
 
-example = MILP_Model("example", list_vehicles)
-example.initialize_variables()
-example.initialize_constraints()
-example.initialize_objective_function()
+    example = MILP_Model("example", list_vehicles)
+    example.initialize_variables()
+    example.initialize_constraints()
+    example.initialize_objective_function()
+    plotting.plot_vehicle_position(example.vehicles)
 
 # Potentially useful code for testing if the generated cars overlap?
 # north_cars = []
