@@ -36,26 +36,39 @@ v_max = 30  # m/s
 v_avg = 15.63889
 # Calculated lower bound value for big M for constraint 3
 M_big = 2000  # for constraint 3
+# Maximum number of vehicles
+max_vehicles = 100
 
 # randomizing
 random.seed(42)
 directions_cars = ['North', 'South', 'East', 'West']
 random_directions = []
 random_distances = []
-for i in range(100):
-    random_directions.append(random.choice(directions_cars))
-    random_distances.append(random.randint(0, 500))
 
+# the cars spawned can not overlap
+
+for i in range(max_vehicles):
+    random_directions.append(random.choice(directions_cars))
+    while(True):
+        a = random.randrange(0, d_subscription - L)
+        overlap = False
+        for j in range(0, i):
+            if random_directions[i] == random_directions[j]:
+                if (abs(a - random_distances[j]) < 5):
+                    overlap = True
+        if not overlap:
+            random_distances.append(a)
+            break
 
 class Vehicle:
-    def __init__(self, idx, k=0, d0=-1, v0=20, t0=-1, t_access=None):
+    def __init__(self, idx, k=0, d0=-1, v0=20, t0=-1, t_access = None):
         self.idx = idx
         if k == 0:
-            self.k = random_directions[idx % 100]
+            self.k = random_directions[idx]
         else:
             self.k = k
         if d0 == -1:
-            self.d0 = random_distances[idx % 100]
+            self.d0 = random_distances[idx]
         else:
             self.d0 = d0
         self.v0 = v0
@@ -64,7 +77,6 @@ class Vehicle:
         else:
             self.t0 = t0
         self.t_access = t_access
-
 
 class MILP_Model:
     def __init__(self, name="milp", vehicles=[], t_sim=0):
@@ -191,13 +203,32 @@ class MILP_Model:
 
 
 # Generating 10 default vehicles
+
 list_vehicles = []
 for i in range(10):
     list_vehicles.append(Vehicle(i))
+
 
 example = MILP_Model("example", list_vehicles)
 example.initialize_variables()
 example.initialize_constraints()
 example.initialize_objective_function()
-print(example.MILP) # or example.print()
-print("Directions: ", example.ks)
+
+# Potentially useful code for testing if the generated cars overlap?
+# north_cars = []
+# south_cars = []
+# east_cars = []
+# west_cars = []
+# for i in range(100):
+#     if random_directions[i] == 'North':
+#         north_cars.append(random_distances[i])
+#     if random_directions[i] == 'South':
+#         south_cars.append(random_distances[i])
+#     if random_directions[i] == 'East':
+#         east_cars.append(random_distances[i])
+#     if random_directions[i] == 'West':
+#         west_cars.append(random_distances[i])
+
+
+
+
