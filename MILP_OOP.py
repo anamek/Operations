@@ -6,6 +6,7 @@ from itertools import product
 from gurobipy import Model, GRB, LinExpr, quicksum
 from operator import itemgetter
 import matplotlib.pyplot as plt
+import plotting
 
 # usage of no_vehicles vs self.no_vehicles
 
@@ -95,7 +96,7 @@ class MILP_Model:
 
         # Binary variable one per pair of vehicles (constr. 2 & 3) (+ no_vehicles*(no_vehicles+1))
         for i in range(self.no_vehicles):
-            for j in range(i + 1, no_vehicles):
+            for j in range(i + 1, self.no_vehicles):
                 self.B2[i, j] = self.MILP.addVar(vtype=GRB.BINARY, name="B2[%d,%d]" % (i, j))
                 self.B3[i, j] = self.MILP.addVar(vtype=GRB.BINARY, name="B3[%d,%d]" % (i, j))
 
@@ -111,21 +112,21 @@ class MILP_Model:
             self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C2[%d]" % i)
 
         # Constraint 2
-        for j in range(no_vehicles):
-            for k in range(j + 1, no_vehicles):
-                if self.ks[i] == self.ks[j]:
+        for j in range(self.no_vehicles):
+            for k in range(j + 1, self.no_vehicles):
+                if self.ks[k] == self.ks[j]:
                     pair = (j, k)
                     self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B2[j, k] >= t_gap1,
                                                         name="C2[%d,%d]" % (j, k))
                     pair = (k, j)
                     self.C2[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B2[j, k]) >= t_gap1,
                                                         name="C2[%d,%d]" % (k, j))
-
+        self.MILP.update()
         # Constraint 3
         vert_dir = ["North", "South"]
         hor_dir = ["East", "West"]
-        for j in range(no_vehicles):
-            for k in range(j + 1, no_vehicles):
+        for j in range(self.no_vehicles):
+            for k in range(j + 1, self.no_vehicles):
                 if (self.ks[j] in vert_dir and self.ks[k] in hor_dir) or (self.ks[j] in hor_dir
                                                                           and self.ks[k] in vert_dir):
                     pair = (j, k)
@@ -144,18 +145,18 @@ class MILP_Model:
                                                    name="slack_delta_t_access")
 
         # Adding J1 constraints (+no_vehicles constraints)
-        for i in range(no_vehicles):
+        for i in range(self.no_vehicles):
             self.obj_constraints[("constraintsJ1", i)] = self.MILP.addConstr(self.t_slack["slackJ1"] >= self.t[i],
                                                                              name="cons_t_access[%d]" % i)
 
         # Adding J2 slack variables (+no_vehicles variables)
-        for i in range(no_vehicles):
+        for i in range(self.no_vehicles):
             self.t_slack[("slackJ2", i)] = self.MILP.addVar(lb=0.0,
                                                             vtype=GRB.CONTINUOUS,
                                                             name="slack_delta_t_access_abs[%d]" % i)
 
         # Adding J2 Constraints (+2*no_vehicles constraints)
-        for i in range(no_vehicles):
+        for i in range(self.no_vehicles):
             j = 0
             self.obj_constraints[("constraintsJ2", i)] = \
                 self.MILP.addConstr(self.t_slack[("slackJ2", i)] >= (self.t[i] - self.t0s[i]),
@@ -170,7 +171,7 @@ class MILP_Model:
         j1 = self.t_slack["slackJ1"]
         # Second term J2
         j2 = 0
-        for i in range(no_vehicles):
+        for i in range(self.no_vehicles):
             j2 += self.t_slack[("slackJ2", i)]
 
         # Define objective function to be MINIMIZED with weights w_1 and w_2
@@ -183,6 +184,14 @@ class MILP_Model:
     def optimize(self):
         return self.MILP.optimize()
 
+    def getvariables(self):
+        # Get the values of all the decision variables
+        solution = []
+        for i in self.MILP.getVars():
+            solution.append([i.VarName, i.X])
+        return solution
+
+
     def write(self, file="MILP.lp"):
         return self.MILP.write(file)
 
@@ -191,13 +200,17 @@ class MILP_Model:
 
 
 # Generating 10 default vehicles
+
+
 list_vehicles = []
 for i in range(10):
     list_vehicles.append(Vehicle(i))
+
 
 example = MILP_Model("example", list_vehicles)
 example.initialize_variables()
 example.initialize_constraints()
 example.initialize_objective_function()
-print(example.MILP) # or example.print()
-print("Directions: ", example.ks)
+print(example.d0s) # or example.print()
+# print("Directions: ", example.ks)
+
