@@ -115,7 +115,7 @@ class MILP_Model:
         self.MILP.update()
 
     def initialize_constraints(self):
-        # Constraint 1
+        # Constraint 1  (+no_vehicles constraints)
         for i in range(self.no_vehicles):
             v = np.sqrt(self.v0s[i] ** 2 + 2 * a_max_acc * self.d0s[i])
             dt1 = (min(v_max, v) - self.v0s[i]) / a_max_acc

@@ -55,11 +55,11 @@ class TestMILPModel(unittest.TestCase):
         self.assertEqual(len(J2_vars), milp_model.no_vehicles)
         all_cons = milp_model.MILP.getConstrs()
         cons_names = milp_model.MILP.getAttr("ConstrName", all_cons)
-        J1_cons = [x for x in cons_names if x == 'slack_delta_t_access']
-        self.assertEqual()
-
-
-
+        all_J_cons = [x for x in cons_names if x.startswith('cons_t_access')]
+        self.assertEqual(len(all_J_cons), milp_model.no_vehicles*3)
+        J2_cons = [x for x in cons_names if x.startswith('cons_t_access_pos_difference') or
+                   x.startswith('cons_t_access_neg_difference')]
+        self.assertEqual(len(J2_cons), milp_model.no_vehicles*2)
 
     def test_optimize(self):
         list_vehicles = [Vehicle(1), Vehicle(2)]
@@ -72,7 +72,26 @@ class TestMILPModel(unittest.TestCase):
         self.assertEqual(milp_model.MILP.status, GRB.OPTIMAL)
 
     def test_getvariables(self):
-        pass
+        no_vehicles = 4
+        list_vehicles = []
+        for i in range(no_vehicles):
+            list_vehicles.append(Vehicle(i))
+        milp_model = MILP_Model("test_model", list_vehicles)
+        milp_model.initialize_variables()
+        milp_model.initialize_constraints()
+        milp_model.initialize_objective_function()
+        status = milp_model.optimize()
+        solution = milp_model.getvariables()
+
+        t_var = [name for [name, value] in solution if name.startswith('t')]
+        B_var = [name for [name, value] in solution if name.startswith('B')]
+        J1_var = [name for [name, value] in solution if name == 'slack_delta_t_access']
+        self.assertEqual(len(t_var), no_vehicles)
+        self.assertEqual(len(B_var), no_vehicles*(no_vehicles-1))
+        self.assertEqual(len(J1_var), 1)
+
+
+
 
 
 if __name__ == '__main__':
