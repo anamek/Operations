@@ -80,9 +80,9 @@ class Vehicle:
         self.t_access = t_access
 
 class MILP_Model:
-    def __init__(self, name="milp", vehicles=[], t_sim=0):
+    def __init__(self, name="milp", vehicles=[], t_sim=0):  # Not good to have default be a list/mutable
         self.MILP = Model(name)
-        self.no_vehicles = no_vehicles
+        self.no_vehicles = no_vehicles  # Not sure if we need this
         self.vehicles = vehicles
         self.t_sim = t_sim
         self.no_vehicles = len(vehicles)
@@ -106,7 +106,7 @@ class MILP_Model:
         for i in range(self.no_vehicles):
             self.t[i] = self.MILP.addVar(lb=0.0, vtype=GRB.CONTINUOUS, name="t[%d]" % i)
 
-        # Binary variable one per pair of vehicles (constr. 2 & 3) (+ no_vehicles*(no_vehicles+1))
+        # Binary variable one per pair of vehicles (constr. 2 & 3) (+ no_vehicles*(no_vehicles-1))
         for i in range(self.no_vehicles):
             for j in range(i + 1, self.no_vehicles):
                 self.B2[i, j] = self.MILP.addVar(vtype=GRB.BINARY, name="B2[%d,%d]" % (i, j))
