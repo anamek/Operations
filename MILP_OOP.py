@@ -22,21 +22,9 @@ W = 10
 # Response time of an autonomous vehicle [s]
 t_res = 0.5
 # Number of connected vehicles
-no_vehicles = 2
-# Safety gap (Headway h) [s] (parallel vehicles, includes safety factor)
-t_gap1 = 1  # seconds
-# Safety gap conflicting movements [s] aka delta t travel calculation  (perpendicular vehicles)
-t_gap2 = 7.5  # seconds
-# Maximum acceleration [m/s^2]
-a_max_acc = 3  # m/s^2
-# Maximum deceleration in emergency braking [m/s^2]
-a_max_dec = -4
-# Speed limit of the road  [m/s]
-v_max = 30  # m/s
-# Preferred average velocity or road average speed [m/s]
-v_avg = 15.63889
-# Calculated lower bound value for big M for constraint 3
-M_big = 2000  # for constraint 3
+no_vehicles = 2 # I dont think should be here
+
+
 # Maximum number of vehicles
 max_vehicles = 100
 
@@ -62,8 +50,14 @@ for i in range(max_vehicles):
             break
 
 class Vehicle:
-    def __init__(self, idx, k=0, d0=-1, v0=20, t0=-1, t_access = None):
+    def __init__(self, idx, k=0, d0=-1, v0=20, t0=-1, t_access=None, a_acc=3, a_dec=-4, v_avg=15.63889):
         self.idx = idx
+        # Maximum acceleration [m/s^2]
+        self.a_max_acc = a_acc  # m/s^2
+        # Maximum deceleration in emergency braking [m/s^2]
+        self.a_max_dec = a_dec
+        # Preferred average velocity or road average speed [m/s]
+        self.v_avg = v_avg
         if k == 0:
             self.k = random_directions[idx]
         else:
@@ -80,8 +74,9 @@ class Vehicle:
         self.t_access = t_access
 
 class MILP_Model:
-    def __init__(self, name="milp", vehicles=[], t_sim=0):  # Not good to have default be a list/mutable
+    def __init__(self, name="milp", vehicles=[], t_sim=0, t_gap1=1, t_gap2=7.5, v_max=30):  # Not good to have default be a list/mutable
         self.MILP = Model(name)
+        self.MILP.setParam("OutputFlag", 0)
         self.no_vehicles = no_vehicles  # Not sure if we need this
         self.vehicles = vehicles
         self.t_sim = t_sim
@@ -90,6 +85,15 @@ class MILP_Model:
         self.v0s = [vehicle.v0 for vehicle in vehicles]
         self.d0s = [vehicle.d0 for vehicle in vehicles]
         self.t0s = [vehicle.t0 for vehicle in vehicles]
+        self.a_accs = [vehicle.a_max_acc for vehicle in vehicles]
+        self.a_decs = [vehicle.a_max_dec for vehicle in vehicles]
+
+        # Safety gap (Headway h) [s] (parallel vehicles, includes safety factor)
+        self.t_gap1 = t_gap1  # seconds
+        # Safety gap conflicting movements [s] aka delta t travel calculation  (perpendicular vehicles)
+        self.t_gap2 = t_gap2  # seconds
+        # Speed limit of the road  [m/s]
+        self.v_max = v_max  # m/s
 
         self.t = {}  # access times
         self.B2 = {}  # Binary vars for constraint 2
@@ -117,22 +121,25 @@ class MILP_Model:
     def initialize_constraints(self):
         # Constraint 1  (+no_vehicles constraints)
         for i in range(self.no_vehicles):
-            v = np.sqrt(self.v0s[i] ** 2 + 2 * a_max_acc * self.d0s[i])
-            dt1 = (min(v_max, v) - self.v0s[i]) / a_max_acc
-            dt2 = max(self.d0s[i] - (v_max ** 2 - self.v0s[i] ** 2) / (2 * a_max_acc), 0) / v_max
+            v = np.sqrt(self.v0s[i] ** 2 + 2 * self.a_accs[i] * self.d0s[i])
+            dt1 = (min(self.v_max, v) - self.v0s[i]) / self.a_accs[i]
+            dt2 = max(self.d0s[i] - (self.v_max ** 2 - self.v0s[i] ** 2) / (2 * self.a_accs[i]), 0) / self.v_max
             t_min = self.t_sim + dt1 + dt2
             self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C2[%d]" % i)
+
+        # Calculated lower bound value for big M for constraint 2 and 3
+        M_big = 2000  # for constraint 3
 
         # Constraint 2
         for j in range(self.no_vehicles):
             for k in range(j + 1, self.no_vehicles):
                 if self.ks[k] == self.ks[j]:
                     pair = (j, k)
-                    self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B2[j, k] >= t_gap1,
+                    self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B2[j, k] >= self.t_gap1,
                                                         name="C2[%d,%d]" % (j, k))
                     pair = (k, j)
-                    self.C2[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B2[j, k]) >= t_gap1,
-                                                        name="C2[%d,%d]" % (k, j))
+                    self.C2[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B2[j, k]) >=
+                                                        self.t_gap1, name="C2[%d,%d]" % (k, j))
         self.MILP.update()
         # Constraint 3
         vert_dir = ["North", "South"]
@@ -142,10 +149,10 @@ class MILP_Model:
                 if (self.ks[j] in vert_dir and self.ks[k] in hor_dir) or (self.ks[j] in hor_dir
                                                                           and self.ks[k] in vert_dir):
                     pair = (j, k)
-                    self.C3[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B3[j, k] >= t_gap2,
+                    self.C3[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B3[j, k] >= self.t_gap2,
                                                         name="C3[%d,%d]" % (j, k))
                     pair = (k, j)
-                    self.C3[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B3[j, k]) >= t_gap2,
+                    self.C3[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B3[j, k]) >= self.t_gap2,
                                                         name="C3[%d,%d]" % (k, j))
 
         self.MILP.update()
@@ -194,13 +201,15 @@ class MILP_Model:
         self.MILP.update()
 
     def optimize(self):
-        return self.MILP.optimize()
+        self.MILP.optimize()
 
-    def getvariables(self):
+    def getvariables(self, printing=False):
         # Get the values of all the decision variables
-        solution = []
+        solution = {}
         for i in self.MILP.getVars():
-            solution.append([i.VarName, i.X])
+            solution[i.VarName] = i.X
+        if printing:
+            print(*(f"{name}: {solution[name]}" for name in solution), sep="\n")
         return solution
 
 
