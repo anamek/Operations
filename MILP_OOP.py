@@ -68,7 +68,7 @@ class Vehicle:
             self.d0 = d0
         self.v0 = v0
         if t0 == -1:
-            self.t0 = d0 / v0
+            self.t0 = self.d0 / self.v0
         else:
             self.t0 = t0
         self.t_access = t_access
@@ -231,7 +231,10 @@ if __name__ == '__main__':
     example.initialize_variables()
     example.initialize_constraints()
     example.initialize_objective_function()
-    plotting.plot_vehicle_position(example.vehicles)
+    example.optimize()
+    solution = example.getvariables()
+    t_access = [solution[name] for name in solution if name.startswith('t')]
+    plotting.plot_access_times(example.ks, t_access, example.t0s)
 
 # Potentially useful code for testing if the generated cars overlap?
 # north_cars = []
