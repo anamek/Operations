@@ -14,8 +14,8 @@ def plot_vehicle_position(vehicle_list):
             max_limit = vehicle.d0
         x = 0
         y = 0
-        width = 4
-        height = 8
+        width = 3
+        height = 5
 
         rectangle = None
         if vehicle.k == "North":

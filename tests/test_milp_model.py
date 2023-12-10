@@ -80,12 +80,12 @@ class TestMILPModel(unittest.TestCase):
         milp_model.initialize_variables()
         milp_model.initialize_constraints()
         milp_model.initialize_objective_function()
-        status = milp_model.optimize()
+        milp_model.optimize()
         solution = milp_model.getvariables()
 
-        t_var = [name for [name, value] in solution if name.startswith('t')]
-        B_var = [name for [name, value] in solution if name.startswith('B')]
-        J1_var = [name for [name, value] in solution if name == 'slack_delta_t_access']
+        t_var = [name for name in solution if name.startswith('t')]
+        B_var = [name for name in solution if name.startswith('B')]
+        J1_var = [name for name in solution if name == 'slack_delta_t_access']
         self.assertEqual(len(t_var), no_vehicles)
         self.assertEqual(len(B_var), no_vehicles*(no_vehicles-1))
         self.assertEqual(len(J1_var), 1)
