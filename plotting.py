@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import matplotlib
+
+matplotlib.use('TkAgg')
 
 def plot_vehicle_position(vehicle_list):
     fig, ax = plt.subplots()
@@ -11,22 +14,22 @@ def plot_vehicle_position(vehicle_list):
             max_limit = vehicle.d0
         x = 0
         y = 0
-        width = 2.5
-        height = 5
+        width = 4
+        height = 8
 
         rectangle = None
         if vehicle.k == "North":
             y = -vehicle.d0
-            rectangle = Rectangle((x - width / 2, y - height / 2), width, height, edgecolor='black', facecolor='blue')
+            rectangle = Rectangle((x - width / 2, y - height / 2), width, height, edgecolor='blue', facecolor='blue')
         elif vehicle.k == "South":
             y = vehicle.d0
-            rectangle = Rectangle((x - width / 2, y - height / 2), width, height, edgecolor='black', facecolor='blue')
+            rectangle = Rectangle((x - width / 2, y - height / 2), width, height, edgecolor='blue', facecolor='blue')
         elif vehicle.k == "East":
             x = -vehicle.d0
-            rectangle = Rectangle((x - height / 2, y - width / 2), height, width, edgecolor='black', facecolor='red')
+            rectangle = Rectangle((x - height / 2, y - width / 2), height, width, edgecolor='red', facecolor='red')
         elif vehicle.k == "West":
             x = vehicle.d0
-            rectangle = Rectangle((x - height / 2, y - width / 2), height, width, edgecolor='black', facecolor='red')
+            rectangle = Rectangle((x - height / 2, y - width / 2), height, width, edgecolor='red', facecolor='red')
 
         ax.add_patch(rectangle)
 

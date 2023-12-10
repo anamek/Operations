@@ -8,6 +8,7 @@ from operator import itemgetter
 import matplotlib.pyplot as plt
 import plotting
 
+
 # usage of no_vehicles vs self.no_vehicles
 
 #####################################
@@ -62,7 +63,7 @@ for i in range(max_vehicles):
             break
 
 class Vehicle:
-    def __init__(self, idx, k=0, d0=-1, v0=20, t0=-1, t_access = None):
+    def __init__(self, idx, k=0, d0=-1, v0=20, t0=-1, t_access=None):
         self.idx = idx
         if k == 0:
             self.k = random_directions[idx]
@@ -194,7 +195,7 @@ class MILP_Model:
         self.MILP.update()
 
     def optimize(self):
-        return self.MILP.optimize()
+        self.MILP.optimize()
 
     def getvariables(self):
         # Get the values of all the decision variables

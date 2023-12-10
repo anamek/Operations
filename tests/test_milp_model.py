@@ -68,7 +68,7 @@ class TestMILPModel(unittest.TestCase):
         milp_model.initialize_constraints()
         milp_model.initialize_objective_function()
 
-        status = milp_model.optimize()
+        milp_model.optimize()
         self.assertEqual(milp_model.MILP.status, GRB.OPTIMAL)
 
     def test_getvariables(self):
