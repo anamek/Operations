@@ -224,7 +224,7 @@ class MILP_Model:
 
 if __name__ == '__main__':
     list_vehicles = []
-    for i in range(10):
+    for i in range(20):
         list_vehicles.append(Vehicle(i))
 
     example = MILP_Model("example", list_vehicles)
@@ -234,6 +234,7 @@ if __name__ == '__main__':
     example.optimize()
     solution = example.getvariables()
     t_access = [solution[name] for name in solution if name.startswith('t')]
+    plotting.plot_vehicle_position(list_vehicles)
     plotting.plot_access_times(example.ks, t_access, example.t0s)
 
 # Potentially useful code for testing if the generated cars overlap?

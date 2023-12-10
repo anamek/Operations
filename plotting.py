@@ -15,8 +15,8 @@ def plot_vehicle_position(vehicle_list):
             max_limit = vehicle.d0
         x = 0
         y = 0
-        width = 3
-        height = 5
+        width = 5
+        height = 10
 
         rectangle = None
         if vehicle.k == "North":
@@ -104,8 +104,8 @@ def plot_access_times(ks, t_access, t_des):
             ax4.axvline(x=tWd[j], c="#785EF0", linestyle=':')
     ax4.yaxis.set_tick_params(labelleft=False)
     ax4.set_yticks([])
-    ax4.set_xticks(range(0, int(max(t_access+t_des)+2), 2))
-    ax4.set_xlim([0, int(max(max(t_access), max(t_des))+2)])
+    ax4.set_xticks(range(0, int(max(max(t_access), max(t_des))+2), 2))
+    ax4.set_xlim([0, int(max(max(t_access), max(t_des))+1)])
     ax4.set_ylabel('West')
     ax4.set_xlabel('Time [s]')
     plt.show()
