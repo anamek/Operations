@@ -219,12 +219,18 @@ class MILP_Model:
     def print(self):
         return print(self.MILP)
 
+    def plot_access_times(self):
+        solution = self.getvariables()
+        t_access = [solution[name] for name in solution if name.startswith('t')]
+        plotting.plot_vehicle_position(self.vehicles)
+        plotting.plot_access_times(self.ks, t_access, self.t0s)
+
 
 # Generating 10 default vehicles
 
 if __name__ == '__main__':
     list_vehicles = []
-    for i in range(20):
+    for i in range(15):
         list_vehicles.append(Vehicle(i))
 
     example = MILP_Model("example", list_vehicles)
@@ -232,10 +238,7 @@ if __name__ == '__main__':
     example.initialize_constraints()
     example.initialize_objective_function()
     example.optimize()
-    solution = example.getvariables()
-    t_access = [solution[name] for name in solution if name.startswith('t')]
-    plotting.plot_vehicle_position(list_vehicles)
-    plotting.plot_access_times(example.ks, t_access, example.t0s)
+
 
 # Potentially useful code for testing if the generated cars overlap?
 # north_cars = []

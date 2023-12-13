@@ -1,28 +1,26 @@
 from MILP_OOP import MILP_Model, Vehicle
+import plotting
 
 # MILP Case Study from paper
 direction = ["West", "South", "East", "North", "North", "North", "West", "South", "West"]
 distance = [690, 750, 780, 900, 990, 1080, 1170, 1230, 1290]
 v_avg = 56.3 * 0.27778
+v_max = 72.4 * 0.27778
 list_vehicles = []
 for i in range(9):
     list_vehicles.append(Vehicle(i, direction[i], distance[i], v_avg))
 
 # Optimizing
-example = MILP_Model("example", list_vehicles)
+example = MILP_Model("example", list_vehicles, v_max=v_max, t_gap1=1)
 example.initialize_variables()
 example.initialize_constraints()
-example.initialize_objective_function(0.5, 0.5)
+example.initialize_objective_function(0.801, 0.199)
 example.MILP.optimize()
-
+print(example.MILP.getObjective().getValue())
 # Printing results
-all_vars = example.MILP.getVars()
-values = example.MILP.getAttr("X",all_vars[0:9])
-names = example.MILP.getAttr("VarName", all_vars[0:9])
+solution = example.getvariables(printing=True)
 
-for name, val in zip(names, values):
-    print(f"{name} = {val}")
-
+example.plot_access_times()
 
 
 

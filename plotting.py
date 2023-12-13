@@ -64,7 +64,7 @@ def plot_access_times(ks, t_access, t_des):
     tN = t_access[ks == 'North']
     tNd = t_des[ks == 'North']
     for j in range(len(tN)):
-        if tN[j] - tNd[j] < 0.01:
+        if abs(tN[j] - tNd[j]) < 0.01:
             ax1.axvline(x=tN[j], c="#FFB000", linewidth=2.5)
         else:
             ax1.axvline(x=tN[j], c="#FFB000")
@@ -75,7 +75,7 @@ def plot_access_times(ks, t_access, t_des):
     tS = t_access[ks == 'South']
     tSd = t_des[ks == 'South']
     for j in range(len(tS)):
-        if tS[j] - tSd[j] < 0.01:
+        if abs(tS[j] - tSd[j]) < 0.01:
             ax2.axvline(x=tS[j], c="#FE6100", linewidth=2.5)
         else:
             ax2.axvline(x=tS[j], c="#FE6100")
@@ -86,7 +86,7 @@ def plot_access_times(ks, t_access, t_des):
     tE = t_access[ks == 'East']
     tEd = t_des[ks == 'East']
     for j in range(len(tE)):
-        if tE[j] - tEd[j] < 0.01:
+        if abs(tE[j] - tEd[j]) < 0.01:
             ax3.axvline(x=tE[j], c="#DC267F", linewidth=2.5)
         else:
             ax3.axvline(x=tE[j], c="#DC267F")
@@ -97,7 +97,7 @@ def plot_access_times(ks, t_access, t_des):
     tW = t_access[ks == 'West']
     tWd = t_des[ks == 'West']
     for j in range(len(tW)):
-        if tW[j] - tWd[j] < 0.01:
+        if abs(tW[j] - tWd[j]) < 0.01:
             ax4.axvline(x=tW[j], c="#785EF0", linewidth=2.5)
         else:
             ax4.axvline(x=tW[j], c="#785EF0")
@@ -105,7 +105,7 @@ def plot_access_times(ks, t_access, t_des):
     ax4.yaxis.set_tick_params(labelleft=False)
     ax4.set_yticks([])
     ax4.set_xticks(range(0, int(max(max(t_access), max(t_des))+2), 2))
-    ax4.set_xlim([0, int(max(max(t_access), max(t_des))+1)])
+    ax4.set_xlim([int(min(min(t_access), min(t_des))-1), int(max(max(t_access), max(t_des))+1)])
     ax4.set_ylabel('West')
     ax4.set_xlabel('Time [s]')
     plt.show()
