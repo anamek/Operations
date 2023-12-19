@@ -74,12 +74,14 @@ class Vehicle:
         self.t_access = t_access
 
 class MILP_Model:
-    def __init__(self, name="milp", vehicles=[], t_sim=0, t_gap1=1, t_gap2=7.5, v_max=30):  # Not good to have default be a list/mutable
+    def __init__(self, name="milp", vehicles=None, t_sim=0, t_gap1=1, t_gap2=7.5, v_max=30):  # Not good to have default be a list/mutable
         self.MILP = Model(name)
         self.MILP.setParam("OutputFlag", 0)
         self.no_vehicles = no_vehicles  # Not sure if we need this
         self.vehicles = vehicles
         self.t_sim = t_sim
+        if vehicles is None:
+            vehicles = []
         self.no_vehicles = len(vehicles)
         self.ks = [vehicle.k for vehicle in vehicles]  # Direction
         self.v0s = [vehicle.v0 for vehicle in vehicles]
@@ -125,10 +127,10 @@ class MILP_Model:
             dt1 = (min(self.v_max, v) - self.v0s[i]) / self.a_accs[i]
             dt2 = max(self.d0s[i] - (self.v_max ** 2 - self.v0s[i] ** 2) / (2 * self.a_accs[i]), 0) / self.v_max
             t_min = self.t_sim + dt1 + dt2
-            self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C2[%d]" % i)
+            self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C1[%d]" % i)
 
         # Calculated lower bound value for big M for constraint 2 and 3
-        M_big = 2000  # for constraint 3
+        M_big = 2000
 
         # Constraint 2
         for j in range(self.no_vehicles):
@@ -238,6 +240,7 @@ if __name__ == '__main__':
     example.initialize_constraints()
     example.initialize_objective_function()
     example.optimize()
+    plotting.plot_vehicle_position(list_vehicles)
 
 
 # Potentially useful code for testing if the generated cars overlap?

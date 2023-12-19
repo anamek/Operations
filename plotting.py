@@ -9,14 +9,13 @@ def plot_vehicle_position(vehicle_list):
     fig, ax = plt.subplots()
     max_limit = 0
     margin = 10
+    max_limit = max(vehicle.d0 for vehicle in vehicle_list) * 1.05
     # Plot the vehicle position as rectangles
     for vehicle in vehicle_list:
-        if vehicle.d0 > max_limit:
-            max_limit = vehicle.d0
         x = 0
         y = 0
-        width = 5
-        height = 10
+        width = max_limit/60
+        height = max_limit/30
 
         rectangle = None
         if vehicle.k == "North":

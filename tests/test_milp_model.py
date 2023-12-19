@@ -1,7 +1,6 @@
 import unittest
 from gurobipy import Model, GRB, LinExpr, quicksum
-from MILP_OOP import MILP_Model
-from MILP_OOP import Vehicle
+from MILP_OOP import MILP_Model, Vehicle
 
 class TestMILPModel(unittest.TestCase):
     def setUp(self):
@@ -37,6 +36,10 @@ class TestMILPModel(unittest.TestCase):
         milp_model = MILP_Model("test_model", list_vehicles)
         milp_model.initialize_variables()
         milp_model.initialize_constraints()
+
+        cons = milp_model.MILP.getConstrs()
+        names = milp_model.MILP.getAttr("ConstrName", cons)
+        print(names)
 
         self.assertTrue((2, 3) in milp_model.C2.keys())
         self.assertTrue((0, 1) in milp_model.C3.keys())
