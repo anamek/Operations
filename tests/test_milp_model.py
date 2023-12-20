@@ -32,17 +32,26 @@ class TestMILPModel(unittest.TestCase):
         self.assertEqual(len(B_vars), no_vehicles*(no_vehicles-1))
 
     def test_initialize_constraints(self):
-        list_vehicles = [Vehicle(1), Vehicle(2), Vehicle(3), Vehicle(4)]
+        list_vehicles = [Vehicle(1, k='North'), Vehicle(2, k='North'), Vehicle(3, k='West'), Vehicle(4, k='East')]
         milp_model = MILP_Model("test_model", list_vehicles)
         milp_model.initialize_variables()
         milp_model.initialize_constraints()
 
-        cons = milp_model.MILP.getConstrs()
-        names = milp_model.MILP.getAttr("ConstrName", cons)
-        print(names)
-
-        self.assertTrue((2, 3) in milp_model.C2.keys())
-        self.assertTrue((0, 1) in milp_model.C3.keys())
+        all_cons = milp_model.MILP.getConstrs()
+        cons_names = milp_model.MILP.getAttr("ConstrName", all_cons)
+        C1_cons = [x for x in cons_names if x.startswith('C1')]
+        C2_cons = [x for x in cons_names if x.startswith('C2')]
+        C3_cons = [x for x in cons_names if x.startswith('C3')]
+        for i in range(4):
+            self.assertTrue(f'C1[{i}]' in C1_cons)
+        print(C3_cons)
+        self.assertTrue('C2[0,1]' in C2_cons)
+        self.assertTrue('C2[1,0]' not in C2_cons)
+        self.assertTrue('C2[1,3]' not in C2_cons)
+        self.assertTrue('C3[0,3]' in C3_cons)
+        self.assertTrue('C3[3,0]' in C3_cons)
+        self.assertTrue('C3[2,3]' not in C3_cons)
+        self.assertTrue('C3[3,2]' not in C3_cons)
 
     def test_initialize_objective_function(self):
         list_vehicles = [Vehicle(1), Vehicle(2), Vehicle(3), Vehicle(4)]

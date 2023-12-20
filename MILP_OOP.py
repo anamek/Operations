@@ -133,9 +133,9 @@ class MILP_Model:
         for k in range(self.no_vehicles):
             for j in range(k + 1, self.no_vehicles):
                 if self.ks[k] == self.ks[j]:
-                    pair = (j, k)
+                    pair = (k, j)
                     self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] >= self.t_gap1,
-                                                        name="C2[%d,%d]" % (j, k))
+                                                        name="C2[%d,%d]" % (k, j))
         self.MILP.update()
 
         # Calculated lower bound value for big M for constraint 3
