@@ -19,6 +19,8 @@ class TestSystem(unittest.TestCase):
         test.initialize_objective_function(w_1=0, w_2=1)
         test.optimize()
         solution = test.getvariables()
+        test.plot_access_times()
+        self.assertAlmostEqual(solution['t[0]'], 4)
 
 
     def test_singular_car_fastest_time(self):
@@ -34,6 +36,7 @@ class TestSystem(unittest.TestCase):
         test.initialize_objective_function(w_1=1, w_2=0)
         test.optimize()
         solution = test.getvariables()
+        test.plot_access_times()
         self.assertAlmostEqual(solution['t[0]'], t_fastest)
 
     def test_two_car_same_direction(self):
@@ -44,30 +47,30 @@ class TestSystem(unittest.TestCase):
         test.initialize_objective_function(w_1=0, w_2=1)
         test.optimize()
         solution = test.getvariables()
-        print(test.d0s)
         test.plot_access_times()
         self.assertAlmostEqual(solution['t[0]'] - solution['t[1]'], test.t_gap1)
 
-
     def test_two_car_opposite_direction(self):
-        list_vehicles = [Vehicle(0, t0=4, v0=10, d0=50, k='North'), Vehicle(1, t0=4.1, v0=10, d0=50, k='South')]
+        list_vehicles = [Vehicle(0, t0=5, v0=10, d0=50, k='North'), Vehicle(1, t0=5.1, v0=10, d0=51, k='South')]
         test = MILP_Model("two cars north and south", list_vehicles)
         test.initialize_variables()
         test.initialize_constraints()
         test.initialize_objective_function(w_1=0, w_2=1)
         test.optimize()
         solution = test.getvariables()
-        self.assertAlmostEqual(solution['t[1]'], 4.1)
-        self.assertAlmostEqual(solution['t[0]'], 4.0)
+        test.plot_access_times()
+        self.assertAlmostEqual(solution['t[1]'], 5.1)
+        self.assertAlmostEqual(solution['t[0]'], 5.0)
 
     def test_two_car_perpendicular_direction(self):
-        list_vehicles = [Vehicle(0, t0=4, v0=10, d0=50, k='North'), Vehicle(1, t0=4.1, v0=10, d0=50, k='East')]
+        list_vehicles = [Vehicle(0, t0=5, v0=10, d0=50, k='North'), Vehicle(1, t0=5.1, v0=10, d0=51, k='East')]
         test = MILP_Model("two cars north and east", list_vehicles)
         test.initialize_variables()
         test.initialize_constraints()
         test.initialize_objective_function(w_1=0, w_2=1)
         test.optimize()
         solution = test.getvariables()
+        test.plot_access_times()
         self.assertAlmostEqual(solution['t[1]'] - solution['t[0]'], test.t_gap2)
 
 

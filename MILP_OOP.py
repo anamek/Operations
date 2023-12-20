@@ -29,7 +29,7 @@ no_vehicles = 2 # I dont think should be here
 max_vehicles = 100
 
 # randomizing
-random.seed(42)
+random.seed(36)
 directions_cars = ['North', 'South', 'East', 'West']
 random_directions = []
 random_distances = []
@@ -223,8 +223,9 @@ class MILP_Model:
     def plot_access_times(self):
         solution = self.getvariables()
         t_access = [solution[name] for name in solution if name.startswith('t')]
+
         plotting.plot_vehicle_position(self.vehicles)
-        plotting.plot_access_times(self.ks, t_access, self.t0s)
+        plotting.plot_access_times(self.ks, t_access, self.t0s, signals=True)
 
 
 # Generating 10 default vehicles
@@ -240,7 +241,6 @@ if __name__ == '__main__':
     example.initialize_objective_function()
     example.optimize()
     example.plot_access_times()
-
 
 
 # Potentially useful code for testing if the generated cars overlap?
