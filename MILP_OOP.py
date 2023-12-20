@@ -39,7 +39,7 @@ random_distances = []
 for i in range(max_vehicles):
     random_directions.append(random.choice(directions_cars))
     while(True):
-        a = random.randrange(0, d_subscription - L)
+        a = random.randrange(5, d_subscription - L)
         overlap = False
         for j in range(0, i):
             if random_directions[i] == random_directions[j]:
@@ -129,20 +129,18 @@ class MILP_Model:
             t_min = self.t_sim + dt1 + dt2
             self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C1[%d]" % i)
 
-        # Calculated lower bound value for big M for constraint 2 and 3
-        M_big = 2000
-
         # Constraint 2
-        for j in range(self.no_vehicles):
-            for k in range(j + 1, self.no_vehicles):
+        for k in range(self.no_vehicles):
+            for j in range(k + 1, self.no_vehicles):
                 if self.ks[k] == self.ks[j]:
                     pair = (j, k)
-                    self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B2[j, k] >= self.t_gap1,
+                    self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] >= self.t_gap1,
                                                         name="C2[%d,%d]" % (j, k))
-                    pair = (k, j)
-                    self.C2[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B2[j, k]) >=
-                                                        self.t_gap1, name="C2[%d,%d]" % (k, j))
         self.MILP.update()
+
+        # Calculated lower bound value for big M for constraint 3
+        M_big = 2000
+
         # Constraint 3
         vert_dir = ["North", "South"]
         hor_dir = ["East", "West"]
@@ -240,7 +238,8 @@ if __name__ == '__main__':
     example.initialize_constraints()
     example.initialize_objective_function()
     example.optimize()
-    plotting.plot_vehicle_position(list_vehicles)
+    example.plot_access_times()
+
 
 
 # Potentially useful code for testing if the generated cars overlap?

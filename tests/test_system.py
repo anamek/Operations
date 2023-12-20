@@ -20,6 +20,7 @@ class TestSystem(unittest.TestCase):
         test.optimize()
         solution = test.getvariables()
         self.assertEqual(solution['t[0]'], t0)
+        plotting.plot_vehicle_position(list_vehicles)
 
     def test_singular_car_fastest_time(self):
         d0 = 87.5

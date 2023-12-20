@@ -19,6 +19,10 @@ class TestVehicle(unittest.TestCase):
         default_vehicle = Vehicle(idx=1)
 
         self.assertEqual(default_vehicle.idx, 1)
+        self.assertTrue(default_vehicle.k in ['North', 'South', 'East', 'West'])
+        self.assertTrue((default_vehicle.d0 > 5) and (default_vehicle.d0 < 500))
+        self.assertEqual(default_vehicle.v0, 20)
+        self.assertEqual(default_vehicle.t0, default_vehicle.d0/default_vehicle.v0)
 
     # Add more tests as needed
 
