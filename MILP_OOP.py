@@ -77,7 +77,6 @@ class MILP_Model:
     def __init__(self, name="milp", vehicles=None, t_sim=0, t_gap1=1, t_gap2=7.5, v_max=30):  # Not good to have default be a list/mutable
         self.MILP = Model(name)
         self.MILP.setParam("OutputFlag", 0)
-        self.no_vehicles = no_vehicles  # Not sure if we need this
         self.vehicles = vehicles
         self.t_sim = t_sim
         if vehicles is None:
@@ -129,18 +128,20 @@ class MILP_Model:
             t_min = self.t_sim + dt1 + dt2
             self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C1[%d]" % i)
 
-        # Constraint 2
-        for k in range(self.no_vehicles):
-            for j in range(k + 1, self.no_vehicles):
-                if self.ks[k] == self.ks[j]:
-                    pair = (k, j)
-                    self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] >= self.t_gap1,
-                                                        name="C2[%d,%d]" % (k, j))
-        self.MILP.update()
-
-        # Calculated lower bound value for big M for constraint 3
+        # Calculated lower bound value for big M for constraint 2 and 3
         M_big = 2000
 
+        # Constraint 2
+        for j in range(self.no_vehicles):
+            for k in range(j + 1, self.no_vehicles):
+                if self.ks[k] == self.ks[j]:
+                    pair = (j, k)
+                    self.C2[pair] = self.MILP.addConstr(self.t[j] - self.t[k] + M_big * self.B2[j, k] >= self.t_gap1,
+                                                        name="C2[%d,%d]" % (j, k))
+                    pair = (k, j)
+                    self.C2[pair] = self.MILP.addConstr(self.t[k] - self.t[j] + M_big * (1 - self.B2[j, k]) >=
+                                                        self.t_gap1, name="C2[%d,%d]" % (k, j))
+        self.MILP.update()
         # Constraint 3
         vert_dir = ["North", "South"]
         hor_dir = ["East", "West"]

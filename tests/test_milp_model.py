@@ -44,9 +44,8 @@ class TestMILPModel(unittest.TestCase):
         C3_cons = [x for x in cons_names if x.startswith('C3')]
         for i in range(4):
             self.assertTrue(f'C1[{i}]' in C1_cons)
-        print(C3_cons)
         self.assertTrue('C2[0,1]' in C2_cons)
-        self.assertTrue('C2[1,0]' not in C2_cons)
+        self.assertTrue('C2[1,0]' in C2_cons)
         self.assertTrue('C2[1,3]' not in C2_cons)
         self.assertTrue('C3[0,3]' in C3_cons)
         self.assertTrue('C3[3,0]' in C3_cons)
