@@ -100,12 +100,10 @@ class MILP_Model:
         self.t_min = {}  # access times
         self.B2 = {}  # Binary vars for constraint 2
         self.B3 = {}  # Binary vars for constraint 3
-        self.BO = {}  # Binary vars for overtake
 
         self.C1 = {}  # Constraint one from the paper
         self.C2 = {}  # Constraint two from the paper
         self.C3 = {}  # Constraint three from the paper
-        self.CO = {}  # Constraint for overtake
         self.t_slack = {}
         self.obj_constraints = {}
 
@@ -192,18 +190,19 @@ class MILP_Model:
                 name="cons_t_access_neg_difference[%d]" % i)
             j += 1
 
+        BO = {}
         # Overtake Variable
         for i in range(self.no_vehicles):
             for j in range(i + 1, self.no_vehicles):
                 if self.ks[i] == self.ks[j]:
-                    self.BO[i, j] = self.MILP.addVar(vtype=GRB.BINARY, name="BO[%d,%d]" % (i, j))
+                    BO[i, j] = self.MILP.addVar(vtype=GRB.BINARY, name="BO[%d,%d]" % (i, j))
 
         # Constraint Overtake
         for j in range(self.no_vehicles):
             for k in range(j + 1, self.no_vehicles):
                 if self.ks[j] == self.ks[k]:
                     self.obj_constraints['cons_Overtake'] = self.MILP.addConstr(self.t[k] - self.t[j]
-                                                        + 1000 * self.BO[j, k] >= 0, name="cons_over[%d,%d]" % (j, k))
+                                                        + 1000 * BO[j, k] >= 0, name="cons_over[%d,%d]" % (j, k))
         self.MILP.update()
 
         # First term J1
@@ -217,7 +216,7 @@ class MILP_Model:
         for i in range(self.no_vehicles):
             for j in range(i + 1, self.no_vehicles):
                 if self.ks[i] == self.ks[j]:
-                    jO += self.BO[i, j]*0.00001
+                    jO += BO[i, j]*0.00001
 
         # Define objective function to be MINIMIZED with weights w_1 and w_2
         obj = LinExpr()

@@ -14,7 +14,7 @@ for i in range(9):
 example = MILP_Model("example", list_vehicles, v_max=v_max, t_gap1=1)
 example.initialize_variables()
 example.initialize_constraints()
-example.initialize_objective_function(0.80001, 0.19999)
+example.initialize_objective_function(0.99999, 0.00001)
 example.MILP.optimize()
 # Printing results
 solution = example.getvariables(only_t=True, printing=True)
