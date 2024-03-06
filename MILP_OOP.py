@@ -97,6 +97,7 @@ class MILP_Model:
         self.v_max = v_max  # m/s
 
         self.t = {}  # access times
+        self.t_min = {}  # access times
         self.B2 = {}  # Binary vars for constraint 2
         self.B3 = {}  # Binary vars for constraint 3
 
@@ -125,8 +126,8 @@ class MILP_Model:
             v = np.sqrt(self.v0s[i] ** 2 + 2 * self.a_accs[i] * self.d0s[i])
             dt1 = (min(self.v_max, v) - self.v0s[i]) / self.a_accs[i]
             dt2 = max(self.d0s[i] - (self.v_max ** 2 - self.v0s[i] ** 2) / (2 * self.a_accs[i]), 0) / self.v_max
-            t_min = self.t_sim + dt1 + dt2
-            self.C1[i] = self.MILP.addConstr(self.t[i] >= t_min, name="C1[%d]" % i)
+            self.t_min[i] = self.t_sim + dt1 + dt2
+            self.C1[i] = self.MILP.addConstr(self.t[i] >= self.t_min[i], name="C1[%d]" % i)
 
         # Calculated lower bound value for big M for constraint 2 and 3
         M_big = 2000
@@ -158,6 +159,8 @@ class MILP_Model:
 
         self.MILP.update()
 
+
+
     def initialize_objective_function(self, w_1=0.5, w_2=0.5):
         # Adding J1 slack variable (+1 variable)
         self.t_slack["slackJ1"] = self.MILP.addVar(lb=0.0,
@@ -187,16 +190,37 @@ class MILP_Model:
                 name="cons_t_access_neg_difference[%d]" % i)
             j += 1
 
+        BO = {}
+        # Overtake Variable
+        for i in range(self.no_vehicles):
+            for j in range(i + 1, self.no_vehicles):
+                if self.ks[i] == self.ks[j]:
+                    BO[i, j] = self.MILP.addVar(vtype=GRB.BINARY, name="BO[%d,%d]" % (i, j))
+
+        # Constraint Overtake
+        for j in range(self.no_vehicles):
+            for k in range(j + 1, self.no_vehicles):
+                if self.ks[j] == self.ks[k]:
+                    self.obj_constraints['cons_Overtake'] = self.MILP.addConstr(self.t[k] - self.t[j]
+                                                        + 1000 * BO[j, k] >= 0, name="cons_over[%d,%d]" % (j, k))
+        self.MILP.update()
+
         # First term J1
         j1 = self.t_slack["slackJ1"]
         # Second term J2
         j2 = 0
         for i in range(self.no_vehicles):
             j2 += self.t_slack[("slackJ2", i)]
+        # Third term JO
+        jO = 0
+        for i in range(self.no_vehicles):
+            for j in range(i + 1, self.no_vehicles):
+                if self.ks[i] == self.ks[j]:
+                    jO += BO[i, j]*0.00001
 
         # Define objective function to be MINIMIZED with weights w_1 and w_2
         obj = LinExpr()
-        obj += w_1 * j1 + w_2 * j2
+        obj += w_1 * j1 + w_2 * j2 + jO
 
         self.MILP.setObjective(obj, GRB.MINIMIZE)
         self.MILP.update()
@@ -204,11 +228,14 @@ class MILP_Model:
     def optimize(self):
         self.MILP.optimize()
 
-    def getvariables(self, printing=False):
+    def getvariables(self, printing=False, only_t=False):
         # Get the values of all the decision variables
         solution = {}
         for i in self.MILP.getVars():
-            solution[i.VarName] = i.X
+            if only_t and i.VarName.startswith('t'):
+                solution[i.VarName] = i.X
+            elif not only_t:
+                solution[i.VarName] = i.X
         if printing:
             print(*(f"{name}: {solution[name]}" for name in solution), sep="\n")
         return solution
