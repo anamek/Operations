@@ -135,7 +135,7 @@ def plot_access_times(ks, t_access, t_des, signals=False):
             ax4.axvline(x=tWd[j], c="#785EF0", linestyle=':')
     ax4.yaxis.set_tick_params(labelleft=False)
     ax4.set_yticks([])
-    ax4.set_xticks(range(0, int(max(max(t_access), max(t_des))+3), 2))
+    ax4.set_xticks(range(0, int(max(max(t_access), max(t_des))+3), 5))
     # ax4.set_xlim([int(min(min(t_access), min(t_des))-1), int(max(max(t_access), max(t_des))+1)])
     ax4.set_xlim([0, int(max(max(t_access), max(t_des)) + 2)])
     ax4.set_ylabel('West')
@@ -162,6 +162,7 @@ def plot_access_times(ks, t_access, t_des, signals=False):
         ax5.yaxis.set_tick_params(labelleft=False)
         ax5.set_yticks([])
     assert(min(minW, minN, minS, minE) > 0.999)
+    ax5.tick_params(axis='x', labelrotation=0)
     plt.tight_layout()
     plt.show()
 
